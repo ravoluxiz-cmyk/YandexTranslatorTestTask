@@ -1,0 +1,29 @@
+name: YandexTranslateUITests
+options:
+  minimumXcodeGenVersion: 2.32.0
+targets:
+  YandexTranslateUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    deploymentTarget: "13.0"
+    sources:
+      - Constants
+      - Extensions
+      - Pages
+      - Tests
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.example.YandexTranslateUITestsUITests
+      SWIFT_VERSION: 5.9
+      GENERATE_INFOPLIST_FILE: YES
+      ENABLE_TESTABILITY: YES
+      MACOSX_DEPLOYMENT_TARGET: 13.0
+schemes:
+  YandexTranslateUITests:
+    build:
+      targets:
+        YandexTranslateUITests: [test]
+    test:
+      targets:
+        - name: YandexTranslateUITests
+          parallelizable: false
+      gatherCoverageData: false
