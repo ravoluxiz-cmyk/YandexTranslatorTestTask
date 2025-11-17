@@ -17,71 +17,53 @@ class BasePage {
         self.timeout = timeout
     }
     
+    private var addressBar: XCUIElement {
+        app.comboBoxes.firstMatch.exists ? app.comboBoxes.firstMatch : app.textFields.firstMatch
+    }
+    
+    func copyURLFromAddressBar() -> String? {
+        addressBar.tap()
+        app.typeText("lc")
+        waitForPasteboardChange()
+        return pasteboardString()
+    }
+
+    private func waitForPasteboardChange() {
+        #if os(macOS)
+        let initial = NSPasteboard.general.changeCount
+        while Date().timeIntervalSince(Date()) < 1,
+              NSPasteboard.general.changeCount == initial {
+            RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.05))
+        }
+        #else
+        while Date().timeIntervalSince(Date()) < 1,
+              UIPasteboard.general.string?.isEmpty != false {
+            RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.1))
+        }
+        #endif
+    }
+    
+    private func pasteboardString() -> String? {
+        #if os(iOS)
+        return UIPasteboard.general.string
+        #else
+        return NSPasteboard.general.string(forType: .string)
+        #endif
+    }
+    
     @discardableResult
     func waitForPageToLoad() -> Bool {
         return true
     }
     
     func getCurrentURL() -> String? {
-        let addressBar = app.comboBoxes.firstMatch.exists ? app.comboBoxes.firstMatch : app.textFields.firstMatch
+        guard addressBar.exists else { return nil }
         
-        if addressBar.exists {
-            if let urlValue = addressBar.value as? String {
-                return urlValue
-            }
-            
-            addressBar.tap()
-            addressBar.press(forDuration: 0.5)
-            
-            let selectAllButton = app.menuItems["Select All"]
-            if selectAllButton.waitForExistence(timeout: Constants.Timeouts.short) {
-                selectAllButton.tap()
-                
-                let copyButton = app.menuItems["Copy"]
-                if copyButton.waitForExistence(timeout: Constants.Timeouts.short) {
-                    copyButton.tap()
-                    
-                    #if os(iOS)
-                    return UIPasteboard.general.string
-                    #else
-                    return NSPasteboard.general.string(forType: .string)
-                    #endif
-                }
-            }
-            
-            addressBar.tap()
-            app.typeText(XCUIKeyboardKey.command.rawValue + "l")
-            _ = addressBar.waitForExistence(timeout: Constants.Timeouts.short)
-            
-            #if os(macOS)
-            let initialChangeCount = NSPasteboard.general.changeCount
-            app.typeText(XCUIKeyboardKey.command.rawValue + "l")
-            app.typeText(XCUIKeyboardKey.command.rawValue + "c")
-            
-            let startTime = Date()
-            while Date().timeIntervalSince(startTime) < 1.0 {
-                if NSPasteboard.general.changeCount > initialChangeCount {
-                    return NSPasteboard.general.string(forType: .string)
-                }
-                RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.05))
-            }
-            return NSPasteboard.general.string(forType: .string)
-            #else
-            app.typeText(XCUIKeyboardKey.command.rawValue + "l")
-            app.typeText(XCUIKeyboardKey.command.rawValue + "c")
-            
-            let startTime = Date()
-            while Date().timeIntervalSince(startTime) < 1.0 {
-                if let content = UIPasteboard.general.string, !content.isEmpty {
-                    return content
-                }
-                RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.1))
-            }
-            return UIPasteboard.general.string
-            #endif
+        if let urlValue = addressBar.value as? String {
+            return urlValue
         }
         
-        return nil
+        return copyURLFromAddressBar()
     }
     
     func logStep(_ message: String) {

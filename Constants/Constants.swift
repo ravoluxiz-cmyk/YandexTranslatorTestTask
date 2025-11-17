@@ -42,4 +42,23 @@ enum Constants {
         static let copyingURL = "Copying URL from address bar"
     }
     
+    enum Consent {
+        static let signals = [
+            "Before you continue", "cookies", "Файлы cookie",
+            "Personalisierung und Cookies", "Anmelden", "Weitere Einstellungen"
+        ]
+        
+        static let buttonLabels = [
+            "I agree", "Agree", "Accept all", "Accept",
+            "Соглас", "Принять", "Alle akzeptieren", 
+            "Akzeptieren", "Ich stimme zu"
+        ]
+        
+        static let buttonIdentifiers = ["agree", "accept"]
+    }
+    
+    enum GoogleSearch {
+        static let yandexTranslateURL = "https://translate.yandex.ru"
+    }
+    
 }

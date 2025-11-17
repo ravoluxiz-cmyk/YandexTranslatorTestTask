@@ -33,7 +33,7 @@ class BaseTest: XCTestCase {
     }
     
     override func tearDown() {
-        if let testRun = testRun, testRun.hasBeenSkipped || testRun.failureCount > 0 {
+        if let testRun = testRun, testRun.failureCount > 0 {
             takeFailureScreenshot()
         }
         
@@ -59,16 +59,6 @@ class BaseTest: XCTestCase {
         attachment.name = "Failure_Screenshot_\(name)_\(Date().timeIntervalSince1970)"
         attachment.lifetime = .keepAlways
         add(attachment)
-    }
-    
-    func takeScreenshot(name: String) {
-        XCTContext.runActivity(named: "Screenshot: \(name)") { _ in
-            let screenshot = XCUIScreen.main.screenshot()
-            let attachment = XCTAttachment(screenshot: screenshot)
-            attachment.name = name
-            attachment.lifetime = .keepAlways
-            add(attachment)
-        }
     }
     
     private func clearSafariState() {
@@ -126,26 +116,27 @@ class BaseTest: XCTestCase {
     
     func logStep(_ message: String) {
         XCTContext.runActivity(named: message) { _ in
+            // Просто логируем шаг без скриншота
         }
     }
     
     func testStep(_ description: String, closure: () throws -> Void) {
-        XCTContext.runActivity(named: "Step: \(description)") { _ in
-            if self.app == nil {
-                self.app = XCUIApplication(bundleIdentifier: Constants.URLs.safariURL)
-            }
-            
-            if self.app.state != .runningForeground {
-                self.app.activate()
-                self.app.launch()
-                _ = self.app.wait(for: .runningForeground, timeout: Constants.Timeouts.extended)
-            }
-            
-            do {
-                try closure()
-            } catch {
-                XCTFail("Failed to perform step: \(description)")
-            }
+        logStep(description)
+        
+        if self.app == nil {
+            self.app = XCUIApplication(bundleIdentifier: Constants.URLs.safariURL)
+        }
+        
+        if self.app.state != .runningForeground {
+            self.app.activate()
+            self.app.launch()
+            _ = self.app.wait(for: .runningForeground, timeout: Constants.Timeouts.extended)
+        }
+        
+        do {
+            try closure()
+        } catch {
+            XCTFail("Failed to perform step: \(description)")
         }
     }
     
@@ -164,6 +155,12 @@ class BaseTest: XCTestCase {
     func verifyWithScreenshot(_ condition: Bool, message: String) {
         if !condition {
             takeFailureScreenshot()
+            XCTFail(message)
+        }
+    }
+    
+    func verifyCondition(_ condition: Bool, message: String) {
+        if !condition {
             XCTFail(message)
         }
     }
@@ -189,7 +186,7 @@ class BaseTest: XCTestCase {
     }
     
     func navigateToURL(_ url: String) {
-        logStep("Navigating to: \(url)")
+        logStep("Переход к: \(url)")
         
         app.activate()
         app.typeText(XCUIKeyboardKey.command.rawValue + "l")

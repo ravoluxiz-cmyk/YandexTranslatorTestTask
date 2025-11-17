@@ -7,40 +7,39 @@ final class YandexTranslateSearchTest: BaseTest {
     
     func testSearchTranslatorAndVerifyYandexURL() throws {
         
-        testStep("Safari browser launched") {
-            checkCondition("Safari is running in foreground", app.state == .runningForeground)
-            takeScreenshot(name: "Safari_Launched")
+        testStep("Браузер Safari запущен") {
+            checkCondition("Safari работает в активном состоянии", app.state == .runningForeground)
+            logStep("Safari успешно запущен")
         }
         
-        testStep("Search 'Переводчик' via Safari address bar") {
-            checkCondition("Search initiated",
+        testStep("Поиск 'Переводчик' через адресную строку Safari") {
+            checkCondition("Поиск начат",
                           googlePage.searchFromAddressBar(Constants.SearchTerms.translatorQuery))
             
             _ = waitFor(condition: { self.app.webViews.links.count > 0 },
                        timeout: Constants.Timeouts.standard,
-                       message: "Search results not loaded")
+                       message: "Результаты поиска не загрузились")
             
-            takeScreenshot(name: "Search_Query_Entered")
+            logStep("Результаты поиска успешно загружены")
         }
         
-        testStep("Navigate to Yandex Translator from search results") {
+        testStep("Переход к Яндекс Переводчику из результатов поиска") {
             let clicked = googlePage.clickSearchResultContaining(Constants.SearchTerms.yandexTranslatorText)
             
             if !clicked {
-                logStep("Trying alternative search for Yandex link")
-                checkCondition("Yandex Translator link found and clicked",
+                logStep("Попытка альтернативного поиска ссылки Яндекс")
+                checkCondition("Ссылка на Яндекс Переводчик найдена и нажата",
                               googlePage.clickSearchResultContaining(Constants.SearchTerms.yandexTranslateLinkText))
             }
             
-            checkCondition("Yandex Translate page loaded", yandexPage.waitForPageToLoad())
-            takeScreenshot(name: "Google_Search_Results")
+            checkCondition("Страница Яндекс Перевода загружена", yandexPage.waitForPageToLoad())
+            logStep("Успешно перешли к Яндекс Переводу")
         }
         
-        testStep("Quick verify Yandex URL") {
+        testStep("Быстрая проверка URL Яндекс") {
             let ok = yandexPage.quickVerifyTranslateHost()
-            checkCondition("URL contains translate.yandex.*", ok)
-            takeScreenshot(name: "Yandex_Translate_Loaded")
-            takeScreenshot(name: "Verification_Complete")
+            checkCondition("URL содержит translate.yandex.*", ok)
+            logStep("Проверка URL Яндекс успешно завершена")
         }
         
     }
